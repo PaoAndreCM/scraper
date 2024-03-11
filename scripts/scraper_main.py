@@ -123,13 +123,13 @@ for property_number in range(property_num_start,property_num_start+1):
         for attribute_header in improvement_attribute_headers:
             index+=1
             values_card = values[:] # make a copy of values
-            values_card.append(str(index))
+            values_card.append(str(index) +' of '+ str(len(improvement_attribute_headers)))
             improvement_attributes = attribute_header.find_all_next('li', limit=16)
             [values_card.append(item.text.split(':')[1].strip()) for item in improvement_attributes] #scrape the improvement attributes of the current card
             values_card.append(property_number)
             append_row(file_path_csv, values_card)
             latest_row_number+=1
-            logging.info(f"Parcel {property_number} successfully scraped to row number {latest_row_number}")
+            logging.info(f"Property number {property_number} card {index} of {len(improvement_attribute_headers)} successfully scraped to row number {latest_row_number}")
 
     else:
         logging.info(f"No General Info found for parcel {property_number}")
