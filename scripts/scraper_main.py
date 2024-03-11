@@ -32,6 +32,14 @@ def append_row(file_path, row):
         writer = csv.writer(csv_file, delimiter=';')
         writer.writerow(row)
 
+# Function to check if a value is convertible to int
+def is_numeric(s):
+    try:
+        float(s)  # Attempt to convert the string to a float
+        return True  # If successful, the string is numeric
+    except ValueError:
+        return False  # If an error occurs, the string is not numeric    
+
 # Function to get the next available row number
 def get_last_row_number_and_property_number(file_path):
     with open(file_path, 'r', newline='') as csv_file:
@@ -39,9 +47,11 @@ def get_last_row_number_and_property_number(file_path):
         rows = list(reader)
         row_count = len(rows) # Num of written rows
         last_scraped_property = rows[-1][-1] # last property scraped
+        if not is_numeric(last_scraped_property):
+            last_scraped_property = 0
     return row_count, last_scraped_property  # Return the last row number written to and the property number corresponding to it
 
-
+# Function to append new character at end of file if it doesn't have one yet (if file has been modified manualy, for example)
 def ensure_last_char_is_newline(file_path):
     with open(file_path, 'ab+') as file:
             file.seek(-1, 2)  # Move the file pointer to the end of the file
@@ -56,6 +66,7 @@ start = time.time()
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     
 create_csv_file(file_path_csv)
+ensure_last_char_is_newline(file_path_csv)
 
 base_url = 'https://www.padctn.org/prc/property/'
 url_suffix = '/print'
@@ -65,9 +76,11 @@ latest_row_number, property_num_start = get_last_row_number_and_property_number(
 property_num_start = int(property_num_start) + 1
 
 # property number: 1 to 295840 # as of 10 March 2024
-property_num_end = 295840
+property_num_end = 295840 # real
+property_num_end = property_num_start + 1 # for debugging
+property_num_end = 10 # custom
 
-for property_number in range(property_num_start,property_num_start+1):
+for property_number in range(property_num_start, property_num_end):
     url = base_url+str(property_number)+url_suffix # Build the url to take info from
     # request website
     try:
