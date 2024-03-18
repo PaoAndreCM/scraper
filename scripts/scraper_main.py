@@ -11,7 +11,7 @@ import logging
 def create_csv_file(file_path):
     if not os.path.exists(file_path):
         with open(file_path, 'w', newline='') as csv_file:
-            writer = csv.writer(csv_file, delimiter=';')
+            writer = csv.writer(csv_file, delimiter=',')
             writer.writerow(["Map & Parcel", "Current Owner", "Mailing Address", "Zone", "Neighborhood",
           "Location", "Land Area (Acres)", "Most Recent Sale Date", "Most Recent Sale Price", "Deed Reference", "Tax District",
           "Assessment Year", "Land Value", "Improvement Value", "Total Appraisal Value", 
@@ -29,7 +29,7 @@ def create_csv_file(file_path):
 # Function to append a row to the CSV file
 def append_row(file_path, row):
     with open(file_path, 'a', newline='') as csv_file:
-        writer = csv.writer(csv_file, delimiter=';')
+        writer = csv.writer(csv_file, delimiter=',')
         writer.writerow(row)
 
 # Function to check if a value is convertible to int
@@ -43,7 +43,7 @@ def is_numeric(s):
 # Function to get the next available row number
 def get_last_row_number_and_property_number(file_path):
     with open(file_path, 'r', newline='') as csv_file:
-        reader = csv.reader(csv_file, delimiter=';')
+        reader = csv.reader(csv_file, delimiter=',')
         rows = list(reader)
         row_count = len(rows) # Num of written rows
         last_scraped_property = rows[-1][-1] # last property scraped
@@ -77,8 +77,8 @@ property_num_start = int(property_num_start) + 1
 
 # property number: 1 to 295840 # as of 10 March 2024
 property_num_end = 295840 # real
-property_num_end = property_num_start + 1 # for debugging
-property_num_end = 10 # custom
+# property_num_end = property_num_start + 1 # for debugging
+# property_num_end = 10 # custom
 
 for property_number in range(property_num_start, property_num_end):
     url = base_url+str(property_number)+url_suffix # Build the url to take info from
@@ -122,9 +122,6 @@ for property_number in range(property_num_start, property_num_end):
         # create row condensed in list comprehension (same code as commented out above)
         values = [item.text.split(':')[1].strip() for index, item in enumerate(property_infos) if index != 5] # does not remove unwanted spaces and periods in 'Map & Parcel' value
         # [values.append(item.text.split(':')[1].strip()) for index, item in enumerate(property_infos) if index != 5] # does not remove unwanted spaces and periods in 'Map & Parcel' value
-
-        # print(values)
-
         # section LEGAL DESCRIPTION
         legal_description_heading = soup.find('h4', {'class': 'featurette-heading'}, string='LEGAL DESCRIPTION') # starting point
         legal_description = legal_description_heading.find_next('li').text.strip()
@@ -140,8 +137,14 @@ for property_number in range(property_num_start, property_num_end):
             improvement_attributes = attribute_header.find_all_next('li', limit=16)
             [values_card.append(item.text.split(':')[1].strip()) for item in improvement_attributes] #scrape the improvement attributes of the current card
             values_card.append(property_number)
+
+            for value in values_card:
+                logging.info(value)
+                print(value)
+
             append_row(file_path_csv, values_card)
             latest_row_number+=1
+
             logging.info(f"Property number {property_number} card {index} of {len(improvement_attribute_headers)} successfully scraped to row number {latest_row_number}")
 
     else:
